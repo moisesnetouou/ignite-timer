@@ -25,21 +25,48 @@ interface CyclesContextType {
   interruptCurrentCycle: () => void
 }
 
+interface CyclesState {
+  cycles: Cycle[]
+  activeCycleId: string | null
+}
+
 export const CyclesContext = createContext({} as CyclesContextType)
 
 export function CyclesContextProvider({ children }: { children: ReactNode }) {
-  const [cycles, dispatch] = useReducer((state: Cycle[], action: any) => {
-    console.log(state)
-    console.log(action)
+  const [cyclesState, dispatch] = useReducer(
+    (state: CyclesState, action: any) => {
+      if (action.type === 'ADD_NEW_CYCLE') {
+        return {
+          ...state,
+          cycles: [...state.cycles, action.payload.newCycle],
+          activeCycleId: action.payload.newCycle.id,
+        }
+      }
 
-    if (action.type === 'ADD_NEW_CYCLE') {
-      return [...state, action.payload.newCycle]
-    }
+      if (action.type === 'INTERRUPT_CURRENT_CYCLE') {
+        return {
+          ...state,
+          cycles: state.cycles.map((cycle) => {
+            if (cycle.id === state.activeCycleId) {
+              return { ...cycle, interruptedDate: new Date() }
+            } else {
+              return cycle
+            }
+          }),
+          activeCycleId: null,
+        }
+      }
 
-    return state
-  }, [])
+      return state
+    },
+    {
+      cycles: [],
+      activeCycleId: null,
+    },
+  )
 
-  const [activeCycleId, setActiveCycleId] = useState<string | null>(null)
+  const { cycles, activeCycleId } = cyclesState
+
   const [amountSecondsPassed, setAmountSecondsPassed] = useState(0)
 
   const activeCycle = cycles.find((cycle) => cycle.id === activeCycleId)
@@ -84,7 +111,7 @@ export function CyclesContextProvider({ children }: { children: ReactNode }) {
     })
 
     /*     setCycles((state) => [...state, newCycle]) */
-    setActiveCycleId(id)
+    /* setActiveCycleId(id) */
     setAmountSecondsPassed(0)
   }
 
@@ -105,8 +132,6 @@ export function CyclesContextProvider({ children }: { children: ReactNode }) {
         activeCycleId,
       },
     })
-
-    setActiveCycleId(null)
   }
 
   return (
