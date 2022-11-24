@@ -25,8 +25,6 @@ export function Countdown() {
           new Date(activeCycle.startDate),
         )
 
-        console.log('INTERVAL', interval)
-
         if (secondsDifference >= totalSeconds) {
           markCurrentCycleAsFinished()
 
